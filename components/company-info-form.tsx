@@ -167,7 +167,8 @@ export const CompanyInfoForm = () => {
                 <Button
                   variant="destructive"
                   className="mr-3 w-[64px] font-medium text-[12px] py-[6px] px-[10px] tracking-wide"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     form.setValue("image", "");
                     setTrigger((trigger) => !trigger);
                   }}
