@@ -63,6 +63,14 @@ const fundingRoundSchema = z.enum([
   "series c",
 ]);
 
+const MAX_FILE_SIZE = 5000000;
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/svg",
+];
+
 const formSchema = z.object({
   companyName: z
     .string()
@@ -83,6 +91,14 @@ const formSchema = z.object({
   hq: z.string().min(3, { message: "Please enter a valid location" }),
   fundingRound: fundingRoundSchema,
   faq: z.string().url({ message: "Company FAQa must be a valid URL" }),
+  image: z
+    .any()
+    .refine((file) => !!file, `Image has not been selected`)
+    .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
 });
 
 export const CompanyInfoForm = () => {
@@ -99,8 +115,12 @@ export const CompanyInfoForm = () => {
       faq: "",
       fundingRound: "seed",
       hq: "",
+      image: "",
     },
   });
+
+  //This is just a dummy value used to trigger rerenders
+  const [trigger, setTrigger] = useState(false);
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     console.log(data);
@@ -132,23 +152,49 @@ export const CompanyInfoForm = () => {
           </div>
           <section className="flex mb-12 md:mb-0">
             <Image
-              src={companyLogo}
+              src={
+                form.getValues("image")
+                  ? URL.createObjectURL(form.getValues("image"))
+                  : companyLogo
+              }
               width={108}
               height={108}
               alt="Company Logo"
-              className="inline-block mr-[30px] w-[108px] h-[108px]"
+              className="inline-block mr-[30px] w-[108px] h-[108px] rounded-full"
             />
             <div className="flex flex-col justify-center">
               <div className="mb-3">
                 <Button
                   variant="destructive"
                   className="mr-3 w-[64px] font-medium text-[12px] py-[6px] px-[10px] tracking-wide"
+                  onClick={() => {
+                    form.setValue("image", "");
+                    setTrigger((trigger) => !trigger);
+                  }}
                 >
                   Remove
                 </Button>
+
+                <input
+                  type="file"
+                  id="file"
+                  className="hidden"
+                  accept={ACCEPTED_IMAGE_TYPES.join(", ")}
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      form.setValue("image", e.target.files[0]);
+                      setTrigger((trigger) => !trigger);
+                    }
+                  }}
+                />
                 <Button
                   variant="outline"
                   className="font-medium text-[12px] py-[6px] px-[10px] tracking-wide"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const elem = document.querySelector("#file") as HTMLElement;
+                    if (elem) elem.click();
+                  }}
                 >
                   Change Photo
                 </Button>
