@@ -140,6 +140,7 @@ export const CompanyInfoForm = () => {
             <Button
               variant="outline"
               className="w-[48%] font-normal tracking-wide md:w-[67px] md:mr-3"
+              onClick={(e) => e.preventDefault()}
             >
               Cancel
             </Button>
@@ -287,7 +288,10 @@ export const CompanyInfoForm = () => {
                         idx != EMPLOYEE_RANGES.length - 1 && "mr-3"
                       )}
                       key={idx}
-                      onClick={() => form.setValue("employeeCount", range)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        form.setValue("employeeCount", range);
+                      }}
                     >
                       {range}
                     </Button>
